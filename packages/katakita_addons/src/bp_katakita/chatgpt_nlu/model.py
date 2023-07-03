@@ -8,10 +8,10 @@ class Slot(BaseModel):
     color: int
 
 class Intent(BaseModel):
-    contexts: List[str]
-    entities: Optional[List] = []
     name: str
     slots: List[Slot]
+    entities: Optional[List] = []
+    contexts: List[str]
     utterances: dict
 
 class NLUDataSync(BaseModel):
