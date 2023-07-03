@@ -24,8 +24,8 @@ async def nlu_sync_data(args:NLUDataSync):
         print(e)
         return HTTPException(status_code=500, detail=e)
 
-@app.post("/nlu/process")
-async def nlu_process(args:NLUProcess):
+@app.post("/nlu/predict")
+async def nlu_predict(args:NLUProcess):
     try:
         result = predict_intents(args)
         return result

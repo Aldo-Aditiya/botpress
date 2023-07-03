@@ -164,6 +164,21 @@ utterances: \n\t{utterances}
     result = chat.predict(prompt)
     result_dict = parse_output(result)
 
-    pprint(result_dict)
+    # Edit Schema
+    output = {}
+    output["intent"] = {
+        "name": result_dict["intent"],
+        "confidence": 1,
+        "context": "global" # TODO - Change Context to be dynamic
+    }
+
+    output["slots"] = {}
+    for i, slot in enumerate(result_dict["slots"]):
+        output["slots"][slot] = {
+            "name": slot,
+            "value": result_dict["slot_values"][i]
+        }
+
+    pprint(output)
 
     
