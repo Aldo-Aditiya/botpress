@@ -7,6 +7,7 @@ from pprint import pprint
 from langchain.schema import OutputParserException
 
 from chat_assistant.utils import load_azure_chat_openai
+from chat_assistant.callbacks import PromptCallbackHandler
 
 from bp_katakita.config import load_config
 from bp_katakita.chatgpt_nlu.model import NLUProcess, NLUDataSync
@@ -18,7 +19,8 @@ BOT_FILES_DIR = CONFIG["BOT_FILES_DIR"]
 
 # ----------------- #
 
-chat = load_azure_chat_openai()
+prompt_callback_handler = PromptCallbackHandler()
+chat = load_azure_chat_openai(callback=prompt_callback_handler)
 NLU_INTENT_PROMPT = """You are an intent recognition engine.
 Your job is to recognize the intent and slots of the user's input, based on the given intent context.
 
@@ -33,7 +35,7 @@ Below are the intent context:
 
 You must use the following format, delimited by triple backticks:
 ```
-intent_classes: <MUST USE {intent_classes}>
+intent_classes: {intent_classes} <DO NOT change this>
 intent: <The intent_name that most matches the input, based on the given utterances. ONLY from values in intent_classes. If nothing matches, set as `None`]>
 intent_slots: <Is the `slots` value from the relevant intent class. If intent is `None`, then set as []>
 slots: [<list of slots that appear in the intent. ONLY from values in the intent_slots. If intent is `None`, then set as []>]
@@ -79,7 +81,10 @@ input: {input}
 
 def parse_list(text: str) -> List:
     text = text.replace("[", "").replace("]", "")
-    return [item.strip() for item in text.split(",")]
+    output = [item.strip() for item in text.split(",")]
+    if output == [""]:
+        return []
+    return output
 
 def parse_output(text: str) -> dict:
     pattern = r"intent_classes: (.+).*intent: (.+).*intent_slots: (.+).*slots: (.+).*slot_values: (.+)"
@@ -89,7 +94,7 @@ def parse_output(text: str) -> dict:
 
     reply_dict = {
         "intent_classes": parse_list(match.group(1)),
-        "intent": match.group(2),
+        "intent": match.group(2).replace("\n", ""),
         "intent_slots": parse_list(match.group(3)),
         "slots": parse_list(match.group(4)),
         "slot_values": parse_list(match.group(5))
@@ -142,12 +147,12 @@ def predict_intents(args:NLUProcess):
     intent_prompts = []
     for intent_example in intent_examples:
         intent_prompt = """intent_name: {intent_name}
-        slots: {slots}
-        utterances: \n{utterances}
+slots: {slots}
+utterances: \n\t{utterances}
         """
         intent_prompt = intent_prompt.format(intent_name=intent_example["name"],
                                              slots="[" + ", ".join(slot["name"] for slot in intent_example["slots"]) + "]",
-                                             utterances="\n".join(intent_example["utterances"]))
+                                             utterances="\n\t".join(intent_example["utterances"]["en"]))
         intent_prompts.append(intent_prompt)
     intent_context_prompt = "\n".join(intent_prompts)
     
