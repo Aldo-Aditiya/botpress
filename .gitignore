@@ -72,3 +72,8 @@ modules/*/assets/web/*
 modules/*/assets/config.schema.json
 **/out/**
 **/dist/**
+packages/katakita_addons/bot_files/test-300623/intents
+packages/katakita_addons/src/bp_katakita/__pycache__
+packages/katakita_addons/src/bp_katakita/chatgpt_nlu/__pycache__
+packages/katakita_addons/src/bp_katakita.egg-info
+packages/katakita_addons/src/build/lib/bp_katakita

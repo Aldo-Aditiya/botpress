@@ -1,0 +1,7 @@
+{
+    "BOT_FILES_DIR": "/home/researcher-1/botpress/packages/katakita_addons/bot_files/",
+    "NLU_SERVER": {
+        "host": "localhost",
+        "port": 3003
+    }
+}
