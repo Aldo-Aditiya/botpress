@@ -179,6 +179,6 @@ utterances: \n\t{utterances}
             "value": result_dict["slot_values"][i]
         }
 
-    pprint(output)
+    return output
 
     

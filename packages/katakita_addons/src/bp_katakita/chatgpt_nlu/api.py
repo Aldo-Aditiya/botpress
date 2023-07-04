@@ -28,6 +28,7 @@ async def nlu_sync_data(args:NLUDataSync):
 async def nlu_predict(args:NLUProcess):
     try:
         result = predict_intents(args)
+        print(result)
         return result
     except Exception as e:
         print(e)
