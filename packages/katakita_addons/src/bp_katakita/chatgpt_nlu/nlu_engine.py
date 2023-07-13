@@ -22,24 +22,20 @@ BOT_FILES_DIR = CONFIG["BOT_FILES_DIR"]
 prompt_callback_handler = PromptCallbackHandler()
 chat = load_azure_chat_openai(callback=prompt_callback_handler)
 NLU_INTENT_PROMPT = """You are an intent recognition engine.
-Your job is to recognize the intent and slots of the user's input, based on the given intent context.
-
----
-
-Below are the intent context:
-```
-{intent_context}
-```
-
----
-
-You must use the following format, delimited by triple backticks:
+You must use the following FORMAT, delimited by triple backticks:
 ```
 intent_classes: {intent_classes} <DO NOT change this>
-intent: <The intent_name that most matches the input, based on the given utterances. ONLY from values in intent_classes. If nothing matches, set as `None`]>
+intent: <Based on the intent_context, choose intent_name that most matches the input. ONLY from values in intent_classes. If nothing matches, set as `None`]>
 intent_slots: <Is the `slots` value from the relevant intent class. If intent is `None`, then set as []>
 slots: [<list of slots that appear in the intent. ONLY from values in the intent_slots. If intent is `None`, then set as []>]
 slot_values: [<list of slot values. If intent is `None`, then set as []>]
+```
+
+---
+
+Below are the intent_context:
+```
+{intent_context}
 ```
 
 ---
@@ -48,6 +44,8 @@ Examples
 
 ```
 input: Show me pictures from 2019-08-02
+
+AI response in FORMAT:
 intent_classes: [rover-pictures, rover-status]
 intent: rover-pictures
 intent_slots: [earthDate, imageType, planet]
@@ -55,6 +53,8 @@ slots: [imageType, earthDate]
 slot_values: [pictures, 2019-08-02]
 
 input: Show me Mars pictures
+
+AI response in FORMAT:
 intent_classes: [rover-pictures, rover-weather, rover-status]
 intent: rover-pictures
 intent_slots: [earthDate, imageType, planet]
@@ -62,6 +62,8 @@ slots: [planet, imageType]
 slot_values: [Mars, pictures]
 
 input: Show me Mars pictures from 2019-08-02
+
+AI response in FORMAT:
 intent_classes: [order-mcdonalds, order-pizza]
 intent: None
 intent_slots: []
@@ -75,6 +77,7 @@ Begin
 
 input: {input}
 
+AI response in FORMAT:
 """
 
 # ----------------- #
