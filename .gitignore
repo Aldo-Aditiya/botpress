@@ -79,3 +79,5 @@ packages/katakita_addons/src/bp_katakita.egg-info
 packages/katakita_addons/src/build/lib/bp_katakita
 packages/katakita_addons/bot_files/test-030723/intents
 packages/katakita_addons/app_config
+packages/katakita_addons/src/bp_katakita/dashboard/__pycache__
+packages/katakita_addons/src/bp_katakita/dashboard/.chainlit
