@@ -40,7 +40,7 @@ def create_raw_chat_db_entry(message:str, author:str):
     chat_db_entry = RawChatHistory(
         message_id=str(uuid.uuid4()),
         session_id=cl_user_session.get("id"),
-        bot_id="bank_dki-050723",
+        bot_id="testing_18-07-23",
         datetime=datetime.now(),
         message=message,
         author=author

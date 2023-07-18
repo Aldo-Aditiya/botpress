@@ -39,7 +39,7 @@ def read(message_id:str):
 
 def update(chat_history:ChatHistory):
     if APP_DB_NAME == "mongo-db":
-        result = collection.update_one({"message_id": chat_history.message_id}, {"$set": chat_history})
+        result = collection.update_one({"message_id": chat_history.message_id}, {"$set": chat_history.dict()})
         return {"success": result.modified_count > 0}
      
 def delete(message_id:str):
