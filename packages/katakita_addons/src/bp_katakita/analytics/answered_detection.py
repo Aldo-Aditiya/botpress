@@ -1,8 +1,5 @@
-import os
-import json
 import re
-from typing import List, Optional
-from pprint import pprint
+import traceback
 
 from langchain.schema import OutputParserException
 from langchain.schema import (
@@ -15,7 +12,6 @@ from chat_assistant.utils import load_azure_chat_openai
 from chat_assistant.callbacks import PromptCallbackHandler
 
 from bp_katakita.config import load_config
-from bp_katakita.chatgpt_nlu.model import NLUProcess, NLUDataSync
 
 # ----------------- #
 
@@ -29,7 +25,7 @@ chat = load_azure_chat_openai(callback=prompt_callback_handler)
 
 SYSTEM_PROMPT = """Assistant's task is to think step by step using the below CUSTOM_FORMAT delimited by triple backticks below:
 ```
-thinking: Argue step by step based on the chat_history if the user question is answered. Emphasize newest messages.
+thinking: Argue step by step based on the chat_history whther or not the user question is answered. Emphasize newest messages.
 answered: <yes/no depending on previous step>
 ```
 """
@@ -114,7 +110,10 @@ def predict(chat_history:str):
     prompt.append(HumanMessage(content=USER_MESSAGE_TEMPLATE.format(chat_history=chat_history)))
 
     # Predict and Parse
-    result = chat(prompt)
-    result_dict = parse_output(result.content)
-
-    return result_dict
+    try:
+        result = chat(prompt)
+        result_dict = parse_output(result.content)
+        return result_dict
+    except Exception as e:
+        traceback.print_exc()
+        raise e

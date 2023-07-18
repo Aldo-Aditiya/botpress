@@ -3,5 +3,24 @@
     "NLU_SERVER": {
         "host": "localhost",
         "port": 3003
+    },
+    "DATABASE": {
+        "db_type": "postgres_sql",
+        "name": "botpress_db",
+        "host": "localhost",
+        "port": 5435,
+        "user": "postgres",
+        "password": "secretpw"
+    },
+    "APP_DB": {
+        "name": "mongo-db",
+        "params": {
+            "db_name": "katakita",
+            "host": "localhost",
+            "port": 27017
+        },
+        "collections": {
+            "chat_history": "chat_history"
+        }
     }
 }
