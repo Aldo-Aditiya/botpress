@@ -1,8 +1,5 @@
 import os
 import psycopg2
-import pymongo
-
-from chat_assistant.app.utils.mongodb import load_collection
 
 from bp_katakita.config import load_config
 
@@ -12,11 +9,6 @@ CONFIG = load_config()
 
 # Connect to the database
 DB_CONFIG = CONFIG["DATABASE"]
-APP_DB_NAME = CONFIG["CHAT_HISTORY_DB"]["name"]
-APP_DB_PARAMS = CONFIG["CHAT_HISTORY_DB"]["params"]
-APP_DB_COLLECTION_NAME = CONFIG["CHAT_HISTORY_DB"]["collections"]["chat_history"]
-
-collection = load_collection(APP_DB_NAME, APP_DB_PARAMS, APP_DB_COLLECTION_NAME)
 
 # ----------------- #
 
