@@ -84,7 +84,7 @@ def parse_bool(text:str):
         return "yes"
     elif text == "no":
         return "no"
-    elif text == "unknown":
+    elif "unknown" in text:
         return "unknown"
     else:
         raise OutputParserException(f"Could not parse text: {text}")

@@ -1,4 +1,6 @@
 import pymongo
+import pandas as pd
+from typing import Optional
 from pydantic import parse_obj_as
 
 from chat_assistant.app.utils.mongodb import load_collection
@@ -19,6 +21,14 @@ APP_DB_COLLECTION_NAME = CONFIG["APP_DB"]["collections"]["chat_history"]
 collection = load_collection(APP_DB_NAME, APP_DB_PARAMS, APP_DB_COLLECTION_NAME)
 
 # ----------------- #
+
+def read_as_df(limit:int=1000, query:Optional[str]=None):
+    if APP_DB_NAME == "mongo-db":
+        if query is not None:
+            chat_history = list(collection.find(query).sort("datetime", -1).limit(limit))
+        else:
+            chat_history = list(collection.find().sort("datetime", -1).limit(limit))
+        return pd.DataFrame(chat_history)
 
 def create(chat_history:ChatHistory):
     if APP_DB_NAME == "mongo-db":

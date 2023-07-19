@@ -11,7 +11,6 @@ from bp_katakita.analytics import (
     topic_detection
 )
 from bp_katakita.config import load_config
-from bp_katakita.utils import db
 from bp_katakita.utils.handler import chat_history as chat_history_handler
 from bp_katakita.utils.handler import raw_chat_history as raw_chat_history_handler
 from bp_katakita.utils.handler.model import ChatHistory
