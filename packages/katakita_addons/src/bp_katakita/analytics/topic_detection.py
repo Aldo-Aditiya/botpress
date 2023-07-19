@@ -19,14 +19,14 @@ CONFIG = load_config()
 BOT_FILES_DIR = CONFIG["BOT_FILES_DIR"]
 
 prompt_callback_handler = PromptCallbackHandler()
-chat = load_azure_chat_openai()#callback=prompt_callback_handler)
+chat = load_azure_chat_openai(timeout=20)#callback=prompt_callback_handler)
 
 # ----------------- #
 
 SYSTEM_PROMPT = """Assistant's task is to think step by step using the below CUSTOM_FORMAT delimited by triple backticks below:
 ```
 thinking: Argue step by step based on the chat_history what the topic is. Emphasize newest messages.
-topic: <one word determining the topic. Usually a keyword. Use Indonesian by default.>
+topic: <One keyword determining the topic. `unknown` if not clear. Use Indonesian by default.>
 ```
 """
 
@@ -98,6 +98,7 @@ def predict(chat_history:str):
     # Predict and Parse
     try:
         result = chat(prompt)
+        print(result.content)
         result_dict = parse_output(result.content)
         return result_dict
     except Exception as e:

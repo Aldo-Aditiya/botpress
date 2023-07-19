@@ -12,7 +12,7 @@ class ChatHistory(BaseModel):
     message: str
     author: str
     topic: str = ""
-    answered: Optional[bool] = None
+    answered: Optional[str] = None
 
 class RawChatHistory(BaseModel):
     message_id: str

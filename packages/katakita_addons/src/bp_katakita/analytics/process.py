@@ -22,7 +22,8 @@ CONFIG = load_config()
 
 RUNTIME_PARAMS = {
     "last_updated": datetime.now(),
-    "conversation_history": defaultdict(list)
+    "conversation_history": defaultdict(list),
+    "unprocessed_exists": False
 }
 
 # ----------------- #
@@ -41,8 +42,14 @@ def create_chat_db_entry(message:dict):
 
     result = chat_history_handler.collection.find_one({"message_id": message["message_id"]})
     if result is None:
+        print(str(datetime.now()) + " | ", end="")
+        print(Fore.YELLOW + "[PROCESS][MESSAGE] " + Style.RESET_ALL, end="")
+        print(f"Writing to database, for message_id: {message['message_id']}")
         _ = chat_history_handler.create(chat_db_entry)  
     else:
+        print(str(datetime.now()) + " | ", end="")
+        print(Fore.YELLOW + "[PROCESS][MESSAGE] " + Style.RESET_ALL, end="")
+        print(f"Updating to database, for message_id: {message['message_id']}")
         _ = chat_history_handler.update(chat_db_entry)
 
 # ----------------- #
@@ -57,17 +64,19 @@ def detect_chat_history_changes():
 def process(chat_history_k:int=3, message_buffer_time_mins:int=2):
     last_chat_update = detect_chat_history_changes()
 
-    if last_chat_update <= RUNTIME_PARAMS["last_updated"]:
+    if last_chat_update <= RUNTIME_PARAMS["last_updated"] and not RUNTIME_PARAMS["unprocessed_exists"]:
         print(str(datetime.now()) + " | ", end="")
         print(Fore.GREEN + "[PROCESS] " + Style.RESET_ALL, end="")
         print("No new chat histories. Skipping...")
         pass
 
-    elif last_chat_update > RUNTIME_PARAMS["last_updated"]:
+    elif last_chat_update > RUNTIME_PARAMS["last_updated"] or RUNTIME_PARAMS["unprocessed_exists"]:
         
         print(str(datetime.now()) + " | ", end="")
         print(Fore.YELLOW + "[FETCH] " + Style.RESET_ALL, end="")
         print("Fetching Newest Chat History...")
+
+        RUNTIME_PARAMS["unprocessed_exists"] = False
 
         # Get the newest chat histories from last updated to recent
         last_chat_update_str = last_chat_update.strftime('%Y-%m-%d %H:%M:%S')
@@ -100,44 +109,46 @@ def process(chat_history_k:int=3, message_buffer_time_mins:int=2):
             print(f"Processing chat history for conversation_id: {conversation_id}")
 
             user_message_indices = [i for i, message in enumerate(conversation_history) if message["author"] == "User"]
-            process_user_message_indices = [i for i, message in enumerate(conversation_history) if (message["author"] == "User" and not message["processed"])]
+            unprocessed_conversation_history_indices = [i for i, message in enumerate(conversation_history) if not message["processed"]]
+            unprocessed_user_message_indices = [i for i, message in enumerate(conversation_history) if (message["author"] == "User" and not message["processed"])]
 
             # Process each Message
             ## Previous k user messages (and assistant messages), Current User Message, and Assistant Message up until the next User Message (after at least 1 assistant message).
             ## ASSUMPTION: User messages are not back to back
-            unprocessed_conversation_history = [message for message in conversation_history if not message["processed"]]
+            for message_idx in unprocessed_conversation_history_indices:
+                message = conversation_history[message_idx]
 
-            for message_idx, message in enumerate(unprocessed_conversation_history):
                 print(str(datetime.now()) + " | ", end="")
                 print(Fore.YELLOW + "[PROCESS][MESSAGE] " + Style.RESET_ALL, end="")
                 print(f"Processing {message['author']} message: '{message['message']}' with message_id: {message['message_id']}")
                 
-                if message_idx in process_user_message_indices:
+                if message['author'] == 'User':
 
                     # Check if the user message is the newest message in the conversation, and check its buffer time
-                    um_idx = message_idx
-                    if um_idx == process_user_message_indices[-1]:
-                        if conversation_history[um_idx]["datetime"] + timedelta(minutes=message_buffer_time_mins) > datetime.now():
+                    if message_idx == unprocessed_user_message_indices[-1]:
+                        if message["datetime"] + timedelta(minutes=message_buffer_time_mins) > datetime.now():
                             print(str(datetime.now()) + " | ", end="")
-                            print(Fore.YELLOW + "[PROCESS][MESSAGE] " + Style.RESET_ALL, end="")
-                            print(f"Writing to database for message_id: {message['message_id']}")
+                            print(Fore.YELLOW + "[PROCESS][MESSAGE][SKIP] " + Style.RESET_ALL, end="")
+                            print(f"User message is currently newest and buffer time not passed. Directly writing to database...")
 
                             message["topic"] = ""
                             message["answered"] = None
                             message["processed"] = False
+                            RUNTIME_PARAMS["unprocessed_exists"] = True
+
                             create_chat_db_entry(message)
                             continue
 
                     # We want to find where the value of the user message's index is in the list "user_message_indices" and take the previous k user message indices. 
-                    um_idx_idx = user_message_indices.index(um_idx)
-                    user_chat_history_idxs = user_message_indices[max(0, um_idx_idx-chat_history_k):um_idx_idx]
+                    message_idx_idx = user_message_indices.index(message_idx)
+                    user_chat_history_idxs = user_message_indices[max(0, message_idx_idx-chat_history_k):message_idx_idx]
                     if user_chat_history_idxs == []:
                         user_chat_history_idxs = [0]
 
-                    # We take the oldest user_chat_history and use that up until the um_idx user message to construct the chat history.
+                    # We take the oldest user_chat_history and use that up until the user message idx to construct the chat history.
                     oldest_user_chat_history_idx = user_chat_history_idxs[0]
                     previous_chat_history_list = []
-                    for idx in range(oldest_user_chat_history_idx, um_idx):
+                    for idx in range(oldest_user_chat_history_idx, message_idx):
                         previous_chat_history_list.append(conversation_history[idx])
 
                     # Construct chat history string
@@ -146,23 +157,27 @@ def process(chat_history_k:int=3, message_buffer_time_mins:int=2):
                     for previous_message in previous_chat_history_list:
                         previous_chat_history += f'{previous_message["author"]}: {previous_message["message"]}\n'
                     
-                    ## Current User Message and Assistant Message (until next User Message)
+                    ## Current User Message and Assistant Message (until next User Message - assuming at least 1 assistant message in between)
                     current_chat_history = ""
-                    current_chat_history += f'User: {conversation_history[um_idx]["message"]}\n'
+                    current_chat_history += f'User: {conversation_history[message_idx]["message"]}\n'
 
                     assistant_message_exist = False
-                    for idx in range(um_idx+1, process_user_message_indices[-1]):
-                        if assistant_message_exist:
-                            if conversation_history[idx]["author"] == "User":
-                                break
-                        else:
-                            if conversation_history[idx]["author"] == "Assistant":
-                                assistant_message_exist = True
-                        current_chat_history += f'{conversation_history[idx]["author"]}: {conversation_history[idx]["message"]}\n'
+                    if message_idx == unprocessed_user_message_indices[-1]:
+                        for idx in range(message_idx+1, len(conversation_history)):
+                            current_chat_history += f'{conversation_history[idx]["author"]}: {conversation_history[idx]["message"]}\n'
+                    else:
+                        for idx in range(message_idx+1, unprocessed_user_message_indices[-1]):
+                            if assistant_message_exist:
+                                if conversation_history[idx]["author"] == "User":
+                                    break
+                            else:
+                                if conversation_history[idx]["author"] == "Assistant":
+                                    assistant_message_exist = True
+                            current_chat_history += f'{conversation_history[idx]["author"]}: {conversation_history[idx]["message"]}\n'
 
                     # Process answered_detection and topic_detection
                     print(str(datetime.now()) + " | ", end="")
-                    print(Fore.YELLOW + "[PROCESS][MESSAGE] " + Style.RESET_ALL, end="")
+                    print(Fore.YELLOW + "[PROCESS][MESSAGE][ANSWERED_DET] " + Style.RESET_ALL, end="")
                     print(f"Detecting 'answered'...")
                     try:
                         print(previous_chat_history + current_chat_history)
@@ -170,14 +185,16 @@ def process(chat_history_k:int=3, message_buffer_time_mins:int=2):
                         message["answered"] = answered_dict["answered"]
                         message["processed"] = True
                     except:
-                        message["processed"] = False
                         message["answered"] = None
+                        message["processed"] = False
+                        RUNTIME_PARAMS["unprocessed_exists"] = True
+
                     print(str(datetime.now()) + " | ", end="")
-                    print(Fore.YELLOW + "[PROCESS][MESSAGE] " + Style.RESET_ALL, end="")
-                    print(f"Detected 'answered' as {message['answered']}")
+                    print(Fore.YELLOW + "[PROCESS][MESSAGE][ANSWERED_DET] " + Style.RESET_ALL, end="")
+                    print(f"Set 'answered' as {message['answered']}")
                     
                     print(str(datetime.now()) + " | ", end="")
-                    print(Fore.YELLOW + "[PROCESS][MESSAGE] " + Style.RESET_ALL, end="")
+                    print(Fore.YELLOW + "[PROCESS][MESSAGE][TOPIC_DET] " + Style.RESET_ALL, end="")
                     print(f"Detecting 'topic'...")
                     try:
                         print(current_chat_history)
@@ -186,25 +203,24 @@ def process(chat_history_k:int=3, message_buffer_time_mins:int=2):
                     except:
                         message["topic"] = "unknown"
                     print(str(datetime.now()) + " | ", end="")
-                    print(Fore.YELLOW + "[PROCESS][MESSAGE] " + Style.RESET_ALL, end="")
-                    print(f"Detected topic as {message['topic']}")
+                    print(Fore.YELLOW + "[PROCESS][MESSAGE][TOPIC_DET] " + Style.RESET_ALL, end="")
+                    print(f"Set topic as {message['topic']}")
 
-                else:
+                elif message['author'] == "Assistant":
                     # If Message is from Assistant, we don't need to process it
                     message["topic"] = ""
                     message["answered"] = None
                     message["processed"] = True
+                
+                else:
+                    raise Exception(f"Invalid Author: Must be either 'User' or 'Assistant', got {message['author']}")
 
                 # Construct ChatHistory and Write to MongoDB
-                print(str(datetime.now()) + " | ", end="")
-                print(Fore.YELLOW + "[PROCESS][MESSAGE] " + Style.RESET_ALL, end="")
-                print(f"Writing to database for message_id: {message['message_id']}")
-                
                 create_chat_db_entry(message)  
 
             print(str(datetime.now()) + " | ", end="")
             print(Fore.GREEN + "[PROCESS] " + Style.RESET_ALL, end="")
-            print(f"Processs done for conversation_id: {conversation_id}")  
+            print(f"Processs done for conversation_id: {conversation_id}")
 
 # ----------------- #
 

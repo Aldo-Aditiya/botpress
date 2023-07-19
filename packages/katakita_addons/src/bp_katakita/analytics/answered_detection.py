@@ -19,14 +19,14 @@ CONFIG = load_config()
 BOT_FILES_DIR = CONFIG["BOT_FILES_DIR"]
 
 prompt_callback_handler = PromptCallbackHandler()
-chat = load_azure_chat_openai()#callback=prompt_callback_handler)
+chat = load_azure_chat_openai(timeout=20)#callback=prompt_callback_handler)
 
 # ----------------- #
 
 SYSTEM_PROMPT = """Assistant's task is to think step by step using the below CUSTOM_FORMAT delimited by triple backticks below:
 ```
 thinking: Argue step by step based on the chat_history whther or not the user question is answered. Emphasize newest messages.
-answered: <Only either yes or no, depending on previous step>
+answered: <One of [yes,no,unknown] depending on previous step>
 ```
 """
 
@@ -79,13 +79,15 @@ thinking:
 
 # ----------------- #
 
-def parse_bool(text:str) -> bool:
+def parse_bool(text:str):
     if text == "yes":
-        return True
+        return "yes"
     elif text == "no":
-        return False
+        return "no"
+    elif text == "unknown":
+        return "unknown"
     else:
-        raise OutputParserException(f"Could not parse bool: {text}")
+        raise OutputParserException(f"Could not parse text: {text}")
 
 def parse_output(text:str) -> dict:
     pattern = r"answered: (.+)"
@@ -112,6 +114,7 @@ def predict(chat_history:str):
     # Predict and Parse
     try:
         result = chat(prompt)
+        print(result.content)
         result_dict = parse_output(result.content)
         return result_dict
     except Exception as e:
