@@ -62,7 +62,6 @@ chart_style = """
     div.chart-wrapper.fit-x.fit-y {
         background-color: #FFFFFF;
         border: 1px solid #CCCCCC;
-        padding: 5% 5% 0% 5%;
         border-radius: 5px;
         
         border-left: 0.5rem solid #fa978c !important;
@@ -71,8 +70,7 @@ chart_style = """
     canvas.marks {
         width: 100%;
         height: 100%;
-        display: flex;
-        align-items: stretch;
+        padding: 1%;
     }
     </style>
 """
