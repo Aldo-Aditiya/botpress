@@ -60,16 +60,18 @@ def detect_chat_history_changes():
 
     return newest_chat_datetime
 
-def process(chat_history_k:int=3, message_buffer_time_mins:int=2):
+def process(chat_history_k:int=1, message_buffer_time_mins:int=2):
     last_chat_update = detect_chat_history_changes()
 
     if last_chat_update <= RUNTIME_PARAMS["last_updated"] and not RUNTIME_PARAMS["unprocessed_exists"]:
-        print(str(datetime.now()) + " | ", end="")
-        print(Fore.GREEN + "[PROCESS] " + Style.RESET_ALL, end="")
-        print("No new chat histories. Skipping...")
         pass
 
     elif last_chat_update > RUNTIME_PARAMS["last_updated"] or RUNTIME_PARAMS["unprocessed_exists"]:
+
+        print("")
+        print(str(datetime.now()) + " | ", end="")
+        print(Fore.GREEN + "[START] " + Style.RESET_ALL, end="")
+        print("Starting Process...")
         
         print(str(datetime.now()) + " | ", end="")
         print(Fore.YELLOW + "[FETCH] " + Style.RESET_ALL, end="")
@@ -185,8 +187,8 @@ def process(chat_history_k:int=3, message_buffer_time_mins:int=2):
                         message["processed"] = True
                     except:
                         message["answered"] = None
-                        message["processed"] = False
-                        RUNTIME_PARAMS["unprocessed_exists"] = True
+                        message["processed"] = True#False
+                        #RUNTIME_PARAMS["unprocessed_exists"] = True
 
                     print(str(datetime.now()) + " | ", end="")
                     print(Fore.YELLOW + "[PROCESS][MESSAGE][ANSWERED_DET] " + Style.RESET_ALL, end="")
@@ -221,24 +223,22 @@ def process(chat_history_k:int=3, message_buffer_time_mins:int=2):
             print(Fore.GREEN + "[PROCESS] " + Style.RESET_ALL, end="")
             print(f"Processs done for conversation_id: {conversation_id}")
 
+        print(str(datetime.now()) + " | ", end="")
+        print(Fore.GREEN + "[END] " + Style.RESET_ALL, end="")
+        print("Process Finished.")
+
 # ----------------- #
 
 def main():
     """
     Runs in the background to process botpress chat histories and write results to dashboard database.
     """
+    print("")
+    print(str(datetime.now()) + " | ", end="")
+    print(Fore.GREEN + "[BOOT] " + Style.RESET_ALL, end="")
+    print("Standing by for process...")
     while True:
-        print("")
-        print(str(datetime.now()) + " | ", end="")
-        print(Fore.GREEN + "[START] " + Style.RESET_ALL, end="")
-        print("Starting Process...")
-
         process()
-
-        print(str(datetime.now()) + " | ", end="")
-        print(Fore.GREEN + "[END] " + Style.RESET_ALL, end="")
-        print("Process Finished.")
-
         time.sleep(10)
 
 if __name__ == "__main__":

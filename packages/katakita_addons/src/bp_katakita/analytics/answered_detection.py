@@ -25,8 +25,8 @@ chat = load_azure_chat_openai(timeout=20)#callback=prompt_callback_handler)
 
 SYSTEM_PROMPT = """Assistant's task is to think step by step using the below CUSTOM_FORMAT delimited by triple backticks below:
 ```
-thinking: Argue step by step based on the chat_history whther or not the user question is answered. Emphasize newest messages.
-answered: <One of [yes,no,unknown] depending on previous step>
+thinking: Argue step by step based on the chat_history whether or not the user question is answered. Emphasize newest messages.
+answered: <One of [yes,no,unknown,partial,not_question] depending on previous step>
 ```
 """
 
@@ -44,9 +44,7 @@ thinking:
 """
 
 PRIMING_ASSISTANT_MESSAGE_1 = """The user asked about the location of the Mars rover in Indonesian. The assistant responded that the Mars rover is in Jezero Crater, with the specific location being variable. Thus, the assistant provided the general area where the rover is located on Mars, which directly addresses the user's question.
-answered: yes
-```
-"""
+answered: yes```"""
 
 PRIMING_USER_MESSAGE_2 = """chat_history is delimited by triple backticks below.
 ```
@@ -64,8 +62,7 @@ thinking:
 """
 
 PRIMING_ASSISTANT_MESSAGE_2 = """The user asked two questions about locations: one about NASA, and one about the nearest bank. The assistant answered the question about NASA correctly, stating it's located in the United States. However, when the user asked about the location of the nearest bank, the assistant indicated that it does not have direct access to real-time location information, thus not providing an actionable answer to the user's question.
-answered: no
-"""
+answered: no```"""
 
 USER_MESSAGE_TEMPLATE = """chat_history is delimited by triple backticks below.
 ```
@@ -80,12 +77,17 @@ thinking:
 # ----------------- #
 
 def parse_bool(text:str):
-    if text == "yes":
+    text = text.strip().lower()
+    if "yes" in text:
         return "yes"
-    elif text == "no":
-        return "no"
     elif "unknown" in text:
         return "unknown"
+    elif "partial" in text:
+        return "partial"
+    elif "not_question" in text:
+        return "not_question"
+    elif "no" in text:
+        return "no"
     else:
         raise OutputParserException(f"Could not parse text: {text}")
 
