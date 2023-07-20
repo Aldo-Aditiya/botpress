@@ -17,17 +17,20 @@ from bp_katakita.utils.handler.model import RawChatHistory
 # Load Config
 CONFIG = load_config()
 
+# Setup Runtime Params
+RUNTIME_PARAMS = {
+    "user_session_message_count": defaultdict(int)
+}
+
 # ----------------- #
 
 def bot_reply(message, timeout=60):
-    payload = {"type": "text","text": message}
-    headers = {"Content-Type": "application/json"}
+    payload = {"chat_session_id": cl_user_session.get("id"),"message": message}
 
     try:
-        chat_endpoint = "http://localhost:3000/api/v1/bots/{bot_id}/converse/{session_id}"
-        chat_endpoint = chat_endpoint.replace("{bot_id}", "bank_dki-050723").replace("{session_id}", cl_user_session.get("id"))
-        response = requests.post(chat_endpoint, json=payload, headers=headers, timeout=timeout).json()
-        bot_messages = [reply["text"] for reply in response["responses"] if reply["type"] == "text"]
+        chat_endpoint = "http://localhost:45881/simple_document_qa"
+        response = requests.post(chat_endpoint, json=payload, timeout=timeout).json()
+        bot_messages = [response["assistant_reply"]]
 
     except requests.exceptions.Timeout:
         bot_messages = "Maaf, saya tidak bisa memproses permintaan kamu. Silahkan kirimkan pesanmu lagi."
@@ -49,6 +52,14 @@ def create_raw_chat_db_entry(message:str, author:str):
 
 # ----------------- #
 
+@cl.action_callback("Bicara dengan Live Agent")
+async def on_action(action):
+    await cl.Message(content=f"Baik, mohon menunggu sambil kami sambungkan anda ke Live Agent kami.").send()
+
+@cl.on_chat_start
+async def start():
+    await cl.Message(content=f"Halo! Aku adalah Bank DKI Q/A Bot. Saya siap membantu menjawab pertanyaanmu tentang Bank DKI.").send()
+
 @cl.on_message
 async def on_message(message: str):
     create_raw_chat_db_entry(message, "User")
@@ -59,3 +70,10 @@ async def on_message(message: str):
 
         create_raw_chat_db_entry(bot_message, "Assistant")
     
+    RUNTIME_PARAMS["user_session_message_count"][cl_user_session.get("id")] += 1
+
+    if RUNTIME_PARAMS["user_session_message_count"][cl_user_session.get("id")] % 5 == 0:
+        actions = [
+            cl.Action(name="Bicara dengan Live Agent", value="Bicara dengan Live Agent", description="Klik untuk dihubungkan kepada Live Agent kami.")
+        ]
+        await cl.Message(content="Apabila kamu masih butuh bantuan, Live Agent kami siap untuk membantu anda. Klik tombol di bawah untuk dihubungkan dengan Live Agent kami.", actions=actions).send()
