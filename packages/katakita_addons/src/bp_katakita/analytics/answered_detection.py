@@ -26,7 +26,7 @@ chat = load_azure_chat_openai(timeout=20)#callback=prompt_callback_handler)
 SYSTEM_PROMPT = """Assistant's task is to think step by step using the below CUSTOM_FORMAT delimited by triple backticks below:
 ```
 thinking: Argue step by step based on the chat_history whether or not the user question is answered. Emphasize newest messages.
-answered: <One of [yes,no,partial,not_question] depending on previous step>
+answered: <MUST BE ONE OF [yes,no,partial,not_question] depending on previous step>
 ```
 """
 
@@ -38,13 +38,12 @@ User: lokasinya
 Assistant: Rover Mars berada di Kater Jezero, dengan posisi spesifiknya dapat bervariasi.
 ```
 
-answer in CUSTOM_FORMAT, delimited by triple backticks below:
-```
+answer in CUSTOM_FORMAT:
 thinking:
 """
 
 PRIMING_ASSISTANT_MESSAGE_1 = """The user asked about the location of the Mars rover in Indonesian. The assistant responded that the Mars rover is in Jezero Crater, with the specific location being variable. Thus, the assistant provided the general area where the rover is located on Mars, which directly addresses the user's question.
-answered: yes```"""
+answered: yes"""
 
 PRIMING_USER_MESSAGE_2 = """chat_history is delimited by triple backticks below.
 ```
@@ -56,21 +55,19 @@ User: Kalau lokasi bank terdekat di mana?
 Assistant: Maaf, saya tidak memiliki akses langsung ke informasi terkini tentang lokasi bank terdekat.
 ```
 
-answer in CUSTOM_FORMAT, delimited by triple backticks below:
-```
+answer in CUSTOM_FORMAT:
 thinking:
 """
 
 PRIMING_ASSISTANT_MESSAGE_2 = """The user asked two questions about locations: one about NASA, and one about the nearest bank. The assistant answered the question about NASA correctly, stating it's located in the United States. However, when the user asked about the location of the nearest bank, the assistant indicated that it does not have direct access to real-time location information, thus not providing an actionable answer to the user's question.
-answered: no```"""
+answered: no"""
 
 USER_MESSAGE_TEMPLATE = """chat_history is delimited by triple backticks below.
 ```
 {chat_history}
 ```
 
-answer in CUSTOM_FORMAT, delimited by triple backticks below:
-```
+answer in CUSTOM_FORMAT:
 thinking:
 """
 
@@ -80,8 +77,6 @@ def parse_bool(text:str):
     text = text.strip().lower()
     if "yes" in text:
         return "yes"
-    elif "unknown" in text:
-        return "unknown"
     elif "partial" in text:
         return "partial"
     elif "not_question" in text:
