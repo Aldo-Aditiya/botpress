@@ -14,6 +14,17 @@ class ChatHistory(BaseModel):
     topic: str = ""
     answered: Optional[str] = None
 
+class ConversationAnalytics(BaseModel):
+    bot_id: str
+    session_id: str
+    datetime: datetime
+    first_response_time: float
+    avg_response_time: float
+    duration: float
+    wait_time: float
+    sentiment: str = ""
+    summary: str = ""
+
 class RawChatHistory(BaseModel):
     message_id: str
     session_id: str

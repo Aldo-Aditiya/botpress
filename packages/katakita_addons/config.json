@@ -21,7 +21,8 @@
         },
         "collections": {
             "chat_history": "chat_history",
-            "raw_chat_history": "raw_chat_history"
+            "raw_chat_history": "raw_chat_history",
+            "conversation_analytics": "conversation_analytics"
         }
     }
 }
