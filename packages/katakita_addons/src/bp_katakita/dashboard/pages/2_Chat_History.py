@@ -107,23 +107,6 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # ----------------- #
 
-# Sidebar
-sidebar_bottom_html = f"""
-    <style>
-        [data-testid="stSidebarNav"] + div {{
-            position:relative;
-            background-position-x: center;
-            background-position-y: bottom;
-            height:50%;
-            background-size: 85% auto;
-            bottom:0;
-        }}
-    </style>
-"""
-st.sidebar.markdown(sidebar_bottom_html, unsafe_allow_html=True)
-
-# ----------------- #
-
 # Main Panel
 
 st.markdown("### Chat History")   
@@ -133,4 +116,4 @@ df.drop(columns=['_id', 'message_id', 'bot_id'], inplace=True)
 df["datetime"] = pd.to_datetime(df["datetime"])
 df = df.rename(columns={'session_id': 'conversation_id'})
 
-st.dataframe(filter_dataframe(df))
+st.dataframe(filter_dataframe(df), use_container_width=True, height=600)
