@@ -26,7 +26,7 @@ chat = load_azure_chat_openai(timeout=20)#callback=prompt_callback_handler)
 SYSTEM_PROMPT = """Assistant's task is to think step by step using the below CUSTOM_FORMAT delimited by triple backticks below:
 ```
 thinking: Argue step by step based on the chat_history what the topic of the interaction is. Emphasize newest messages.
-topic: <Prioritize taking from topic_list. Pick `unknown` as a last resort if not clear. Use Indonesian by default.>
+topic: <Prioritize taking from topic_list. Pick `oot` if user message is out of topic. Pick `unknown` as a last resort if topic is not clear. Use Indonesian by default.>
 ```
 """
 

@@ -187,8 +187,7 @@ def process(chat_history_k:int=1, message_buffer_time_mins:int=2):
                         message["processed"] = True
                     except:
                         message["answered"] = None
-                        message["processed"] = True#False
-                        #RUNTIME_PARAMS["unprocessed_exists"] = True
+                        message["processed"] = True
 
                     print(str(datetime.now()) + " | ", end="")
                     print(Fore.YELLOW + "[PROCESS][MESSAGE][ANSWERED_DET] " + Style.RESET_ALL, end="")

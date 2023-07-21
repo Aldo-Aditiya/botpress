@@ -26,7 +26,7 @@ chat = load_azure_chat_openai(timeout=20)#callback=prompt_callback_handler)
 SYSTEM_PROMPT = """Assistant's task is to think step by step using the below CUSTOM_FORMAT delimited by triple backticks below:
 ```
 thinking: Argue step by step based on the chat_history whether or not the user question is answered. Emphasize newest messages.
-answered: <One of [yes,no,unknown,partial,not_question] depending on previous step>
+answered: <One of [yes,no,partial,not_question] depending on previous step>
 ```
 """
 
