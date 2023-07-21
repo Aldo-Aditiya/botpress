@@ -117,3 +117,7 @@ df.dropna(inplace=True)
 
 st.dataframe(filter_dataframe(df), use_container_width=True, height=450)
 uploaded_file = st.file_uploader("Update Knowledge Base", type="csv")
+if uploaded_file is not None:
+    bytes_data = uploaded_file.read()
+    with open("/home/researcher-1/botpress/packages/katakita_addons/data/bank_dki/bank_dki.csv", "wb") as f:
+        f.write(bytes_data) 

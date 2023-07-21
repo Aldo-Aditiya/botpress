@@ -127,27 +127,32 @@ st.markdown(middle_card_1_style, unsafe_allow_html=True)
 st.markdown(f'<div style="text-align: right">Last Refreshed: {(datetime.now() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")}</style>', unsafe_allow_html=True)
 st.markdown("### Conversation Analytics")   
 
-insight_text = """test_paragraph
-test_paragraph
-test_paragraph
-test_paragraph
-test_paragraph
-test_paragraph
-test_paragraph
-"""
 
 df = conversation_analytics_handler.read_as_df(query={"bot_id": "testing_18-07-23"})
 df.drop(columns=['_id', 'bot_id'], inplace=True)
 df["datetime"] = pd.to_datetime(df["datetime"])
 df = df.rename(columns={'session_id': 'conversation_id'})
 
+posneutral_sentiment_pct = round((len(df[df["sentiment"] == "positive"]) + len(df[df["sentiment"] == "neutral"]))/ len(df) * 100, 2)
+negative_sentiment_pct = round(len(df[df["sentiment"] == "negative"]) / len(df) * 100, 2)
+
+insight_text = ""
+insight_count = 0
+for index, row in df.iterrows():
+    if row["summary"] != "":
+        insight_text += f"[{row['datetime']}] " + row["summary"] + "\n"
+        insight_count += 1
+    if insight_count == 5:
+        break
+
+
 c1, c2 = st.columns((8,2), gap="medium")
 with c1:
-    st.markdown('#### Recent Insights')
+    st.markdown('#### Recent Conversation Summary')
     st.code(insight_text, language="markdown", line_numbers=False)
 with c2:
     st.markdown('#### Sentiment')
-    st.metric("Positive Sentiment", "90%")
-    st.metric("Negative Sentiment", "10%")
+    st.metric("Neutral/Positive Sentiment", f"{posneutral_sentiment_pct}%")
+    st.metric("Negative Sentiment", f"{negative_sentiment_pct}%")
 
 st.dataframe(filter_dataframe(df), use_container_width=True, height=300)

@@ -7,6 +7,7 @@ import plost
 from colorama import Fore, Back, Style
 
 from bp_katakita.utils.handler import chat_history as chat_history_handler
+from bp_katakita.utils.handler import conversation_analytics as conversation_analytics_handler
 from bp_katakita.config import load_config
 
 # ----------------- #
@@ -119,22 +120,34 @@ c4.metric("Answered Questions", f"{percent_answered_question:.2f}%")
 
 ## Performance Metrics
 st.markdown('#### Performance')
+df_convo = conversation_analytics_handler.read_as_df(query={"bot_id": "testing_18-07-23"})
+df_convo.drop(columns=['_id', 'bot_id'], inplace=True)
+df_convo["datetime"] = pd.to_datetime(df_convo["datetime"])
+df_convo = df_convo.rename(columns={'session_id': 'conversation_id'})
+
+avg_first_response_time = round(df_convo["first_response_time"].mean(), 2)
+avg_response_time = round(df_convo["avg_response_time"].mean(), 2)
+avg_conversation_duration = round(df_convo["duration"].mean(), 2)
+avg_wait_time = round(df_convo["wait_time"].mean(), 2)
+posneutral_sentiment_pct = round((len(df_convo[df_convo["sentiment"] == "positive"]) + len(df_convo[df_convo["sentiment"] == "neutral"]))/ len(df_convo) * 100, 2)
+negative_sentiment_pct = round(len(df_convo[df_convo["sentiment"] == "negative"]) / len(df_convo) * 100, 2)
+
 c1, c2 = st.columns(2)
 with c1:
     st.markdown('##### Chat Performance')
     c11, c12 = st.columns(2)
-    c11.metric("Avg. First Response Time", "1.5 s")
-    c12.metric("Avg. Response Time", "5 s")
-    c11.metric("Avg. Conversation Duration", "5 min")
-    c12.metric("Avg. Wait Time", "5 s")
+    c11.metric("Avg. First Response Time", f"{avg_first_response_time} s")
+    c12.metric("Avg. Response Time", f"{avg_response_time} s")
+    c11.metric("Avg. Conversation Duration", f"{avg_conversation_duration} s")
+    c12.metric("Avg. Wait Time", f"{avg_wait_time} s")
     c11.metric("Bot Deflection Rate", "--%")
     c12.metric("Bot Escalation Rate", "--%")
 with c2:
     st.markdown('##### Customer Satisfaction')
     c21, c22 = st.columns(2)
     c21.metric("Avg. CSAT", "-/5")
-    c21.metric("Positive Sentiment", "90%")
-    c21.metric("Negative Sentiment", "10%")
+    c21.metric("Neutral/Positive Sentiment", f"{posneutral_sentiment_pct}%")
+    c21.metric("Negative Sentiment", f"{negative_sentiment_pct}%")
 
 ## Graphs
 df_convo_per_day = df.groupby(pd.Grouper(key='datetime', freq='D')).agg({'session_id': 'nunique'})
