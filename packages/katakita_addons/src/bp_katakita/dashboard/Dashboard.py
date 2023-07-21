@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import pandas as pd
 
 import streamlit as st
@@ -107,6 +107,8 @@ num_unanswered_question = len(df[df["answered"] == "no"])
 percent_answered_question = 100 - (num_unanswered_question / num_questions) * 100
 
 ## Overview Metrics
+st.markdown(f'<div style="text-align: right">Last Refreshed: {(datetime.now() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")}</style>', unsafe_allow_html=True)
+st.markdown('')
 st.markdown('<div style="text-align: right"><a href="http://108.143.51.70:55555/">Go to Chatbot →</style>', unsafe_allow_html=True)
 st.markdown('#### Overview')
 c1, c2, c3, c4 = st.columns(4)

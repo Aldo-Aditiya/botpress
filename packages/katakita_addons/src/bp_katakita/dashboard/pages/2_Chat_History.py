@@ -1,5 +1,6 @@
 # Taken mostly from: https://blog.streamlit.io/auto-generate-a-dataframe-filtering-ui-in-streamlit-with-filter_dataframe/
 
+from datetime import datetime, timedelta
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
@@ -107,8 +108,7 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # ----------------- #
 
-# Main Panel
-
+st.markdown(f'<div style="text-align: right">Last Refreshed: {(datetime.now() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")}</style>', unsafe_allow_html=True)
 st.markdown("### Chat History")   
 
 df = chat_history_handler.read_as_df(query={"bot_id": "testing_18-07-23"})
