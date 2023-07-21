@@ -18,10 +18,10 @@ class ConversationAnalytics(BaseModel):
     bot_id: str
     session_id: str
     datetime: datetime
-    first_response_time: float
-    avg_response_time: float
-    duration: float
-    wait_time: float
+    first_response_time: Optional[float] = None
+    avg_response_time: Optional[float] = None
+    duration: Optional[float] = None
+    wait_time: Optional[float] = None
     sentiment: str = ""
     summary: str = ""
 

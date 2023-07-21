@@ -32,7 +32,7 @@ def create_conversation_analytics_db_entry(analytics:dict):
         duration=analytics["duration"],
         wait_time=analytics["wait_time"],
         sentiment=analytics["sentiment"],
-        summary=analytics["duration"]
+        summary=analytics["summary"]
     )
 
     result = conversation_analytics_handler.collection.find_one({"session_id": analytics["session_id"]})
@@ -122,17 +122,26 @@ def process():
 
         for session_id in process_session_ids:
             analytics = defaultdict()
+            analytics["session_id"] = session_id
+            analytics["bot_id"] = list(chat_history_handler.collection.find({"session_id": session_id}).limit(1))[0]["bot_id"]
+            analytics["datetime"] = list(chat_history_handler.collection.find({"session_id": session_id}).sort("datetime", -1).limit(1))[0]["datetime"]
 
             print(str(datetime.now()) + " | ", end="")
             print(Fore.YELLOW + "[PROCESS][TIME_ANALYSIS] " + Style.RESET_ALL, end="")
             print(f"Calculating Time metrics for session_id: {session_id}")
 
             # Calculate Time Analytics
-            chat_history = list(chat_history_handler.collection.find({"session_id": session_id}).sort("datetime", -1))
-            analytics["first_response_time"] = calc_first_response_time(chat_history)
-            analytics["avg_response_time"] = calc_avg_response_time(chat_history)
-            analytics["session_id"]["duration"] = (chat_history[0]["datetime"] - chat_history[-1]["datetime"]).total_seconds()
-            analytics["wait_time"] = analytics["first_response_time"]
+            chat_history = list(chat_history_handler.collection.find({"session_id": session_id}).sort("datetime", 1))
+            try:
+                analytics["first_response_time"] = calc_first_response_time(chat_history)
+                analytics["avg_response_time"] = calc_avg_response_time(chat_history)
+                analytics["duration"] = (chat_history[-1]["datetime"] - chat_history[0]["datetime"]).total_seconds()
+                analytics["wait_time"] = analytics["first_response_time"]
+            except:
+                analytics["first_response_time"] = None
+                analytics["avg_response_time"] = None
+                analytics["duration"] = None
+                analytics["wait_time"] = None
 
             print(str(datetime.now()) + " | ", end="")
             print(Fore.GREEN + "[PROCESS][TIME_ANALYSIS] " + Style.RESET_ALL, end="")
