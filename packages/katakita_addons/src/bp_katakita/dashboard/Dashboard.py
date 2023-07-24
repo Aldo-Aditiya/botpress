@@ -49,7 +49,7 @@ top_card_style = """
         padding: 2% 2% 2% 2%;
         border-radius: 5px;
         
-        border-left: 0.5rem solid #0c59ba !important;
+        border-left: 0.5rem solid #3981db !important;
         box-shadow: 0 0.15rem 1.0rem 0 rgba(58, 59, 69, 0.15) !important; 
     }
     label.css-mkogse.e16fv1kl2 {
@@ -69,7 +69,7 @@ middle_card_1_style = """
         padding: 2% 2% 2% 2%;
         border-radius: 5px;
         
-        border-left: 0.5rem solid #0c59ba !important;
+        border-left: 0.5rem solid #3981db !important;
         box-shadow: 0 0.15rem 1.0rem 0 rgba(58, 59, 69, 0.15) !important; 
     }
     </style>
@@ -83,7 +83,7 @@ chart_style = """
         border: 1px solid #CCCCCC;
         border-radius: 5px;
         
-        border-left: 0.5rem solid #0c59ba !important;
+        border-left: 0.5rem solid #3981db !important;
         box-shadow: 0 0.15rem 1.0rem 0 rgba(58, 59, 69, 0.15) !important; 
     }
     canvas.marks {

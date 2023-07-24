@@ -107,6 +107,23 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
+# Sidebar Panel
+sidebar_style = """
+    <style>
+    .css-6qob1r.e1akgbir3 {
+        background-image: linear-gradient(to right, #0c59ba, #05336f);
+        color: white;
+    }
+    .css-pkbazv.e1akgbir5 {
+        color: white;
+    }
+    .css-17lntkn.e1akgbir5 {
+        color: white;
+    }
+    </style>
+"""
+st.markdown(sidebar_style, unsafe_allow_html=True)
+
 # ----------------- #
 
 st.markdown(f'<div style="text-align: right">Last Refreshed: {(datetime.now() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")}</style>', unsafe_allow_html=True)
