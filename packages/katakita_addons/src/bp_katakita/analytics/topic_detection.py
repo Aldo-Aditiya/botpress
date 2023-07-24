@@ -107,7 +107,7 @@ def parse_output(text:str) -> dict:
 
 def clean_up_topic(text:str):
     topics_dict = {
-        "General": ["Bank DKI General"],
+        "Jakone Mobile": ["Jakone Mobile Bank DKI", "Jakone Mobile", "Jakone"],
         "KJP": ["Kartu Jakarta Pintar (KJP)", "KJP", "Kartu Jakarta Pintar"],
         "KJMU": ["Kartu Jakarta Mahasiswa Unggul (KJMU)", "KJMU", "Kartu Jakarta Mahasiswa Unggul"],
         "KLJ": ["Kartu Lanjut Jakarta (KLJ)", "KLJ", "Kartu Lanjut Jakarta"],
@@ -116,14 +116,16 @@ def clean_up_topic(text:str):
         "Kredit Monas Pemula": ["Kredit Monas Pemula Bank DKI", "Kredit Monas Pemula", "Kredit Monas"],
         "GPN": ["Gerbang Pembayaran Nasional (GPN)", "GPN", "Gerbang Pembayaran Nasional"],
         "Deposito": ["Deposito"],
-        "Jakone Mobile": ["Jakone Mobile Bank DKI", "Jakone Mobile", "Jakone"],
+        "General": ["Bank DKI General", "Bank DKI", "General", "Bank"],
+        "oot": ["oot"],
+        "unknown": ["unknown"]
     }
 
     for title, topics in topics_dict.items():
         for topic in topics:
             if topic.lower().strip() in text.lower().strip():
                 return title
-        return text
+    return text
 
 def predict(chat_history:str):
     # Construct Prompt
@@ -140,8 +142,6 @@ def predict(chat_history:str):
         result = chat(prompt)
         print(result.content)
         result_dict = parse_output(result.content)
-        
-
 
         return result_dict
     except Exception as e:

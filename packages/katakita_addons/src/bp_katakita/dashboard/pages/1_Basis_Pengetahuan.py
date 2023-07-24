@@ -9,9 +9,9 @@ from pandas.api.types import (
 )
 import pandas as pd
 import streamlit as st
-st.set_page_config(layout="wide", )
+st.set_page_config(page_title='Basis Pengetahuan', page_icon = "/home/researcher-1/botpress/packages/katakita_addons/src/bp_katakita/dashboard/assets/favicon.png", layout = 'wide', initial_sidebar_state = 'auto')
 
-from bp_katakita.utils.handler import conversation_analytics as conversation_analytics_handler
+from bp_katakita.utils.handler import chat_history as chat_history_handler
 
 # ----------------- #
 
@@ -42,13 +42,13 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     modification_container = st.container()
 
     with modification_container:
-        to_filter_columns = st.multiselect("Filter dataframe on", df.columns)
+        to_filter_columns = st.multiselect("Filter Tabel:", df.columns) #Filter dataframe on
         for column in to_filter_columns:
             left, right = st.columns((1, 20))
             # Treat columns with < 10 unique values as categorical
             if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
                 user_cat_input = right.multiselect(
-                    f"Values for {column}",
+                    f"Nilai untuk {column}",
                     df[column].unique(),
                     default=list(df[column].unique()),
                 )
@@ -58,7 +58,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                 _max = float(df[column].max())
                 step = (_max - _min) / 100
                 user_num_input = right.slider(
-                    f"Values for {column}",
+                    f"Nilai untuk {column}",
                     min_value=_min,
                     max_value=_max,
                     value=(_min, _max),
@@ -67,7 +67,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                 df = df[df[column].between(*user_num_input)]
             elif is_datetime64_any_dtype(df[column]):
                 user_date_input = right.date_input(
-                    f"Values for {column}",
+                    f"Nilai untuk {column}",
                     value=(
                         df[column].min(),
                         df[column].max(),
@@ -79,7 +79,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     df = df.loc[df[column].between(start_date, end_date)]
             else:
                 user_text_input = right.text_input(
-                    f"Substring or regex in {column}",
+                    f"Sub-String {column}",
                 )
                 if user_text_input:
                     df = df[df[column].astype(str).str.contains(user_text_input)]
@@ -89,6 +89,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 # ----------------- #
 
 # Styling
+
 padding_top_html = """
     <style>
     .appview-container .main .block-container {
@@ -98,7 +99,6 @@ padding_top_html = """
     </style>
 """
 st.markdown(padding_top_html, unsafe_allow_html=True)
-
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -107,52 +107,25 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-middle_card_1_style = """
-    <style>
-    div.css-ocqkz7.esravye3 {
-        background-color: #FFFFFF;
-        border: 1px solid #CCCCCC;
-        padding: 2% 2% 2% 2%;
-        border-radius: 5px;
-        
-        border-left: 0.5rem solid #9AD8E1 !important;
-        box-shadow: 0 0.15rem 1.0rem 0 rgba(58, 59, 69, 0.15) !important; 
-    }
-    </style>
-"""
-st.markdown(middle_card_1_style, unsafe_allow_html=True)
-
 # ----------------- #
 
 st.markdown(f'<div style="text-align: right">Last Refreshed: {(datetime.now() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")}</style>', unsafe_allow_html=True)
-st.markdown("### Conversation Analytics")   
+st.markdown("### Basis Pengetahuan") #Knowledge Base
 
+df = pd.read_csv("/home/researcher-1/botpress/packages/katakita_addons/data/bank_dki/bank_dki.csv")
+df.drop(columns=['question_id'], inplace=True)
+df.dropna(inplace=True)
 
-df = conversation_analytics_handler.read_as_df(query={"bot_id": "testing_18-07-23"})
-df.drop(columns=['_id', 'bot_id'], inplace=True)
-df["datetime"] = pd.to_datetime(df["datetime"])
-df = df.rename(columns={'session_id': 'conversation_id'})
+column_rename = {
+    'question_group': 'Kelompok Pertanyaan',
+    'question': 'Pertanyaan',
+    'answer': 'Jawaban'
+}
+df.rename(columns=column_rename, inplace=True)
 
-posneutral_sentiment_pct = round((len(df[df["sentiment"] == "positive"]) + len(df[df["sentiment"] == "neutral"]))/ len(df) * 100, 2)
-negative_sentiment_pct = round(len(df[df["sentiment"] == "negative"]) / len(df) * 100, 2)
-
-insight_text = ""
-insight_count = 0
-for index, row in df.iterrows():
-    if row["summary"] != "":
-        insight_text += f"[{row['datetime']}] " + row["summary"] + "\n"
-        insight_count += 1
-    if insight_count == 5:
-        break
-
-
-c1, c2 = st.columns((8,2), gap="medium")
-with c1:
-    st.markdown('#### Recent Conversation Summary')
-    st.code(insight_text, language="markdown", line_numbers=False)
-with c2:
-    st.markdown('#### Sentiment')
-    st.metric("Neutral/Positive Sentiment", f"{posneutral_sentiment_pct}%")
-    st.metric("Negative Sentiment", f"{negative_sentiment_pct}%")
-
-st.dataframe(filter_dataframe(df), use_container_width=True, height=300)
+st.dataframe(filter_dataframe(df), use_container_width=True, height=450)
+uploaded_file = st.file_uploader("Perbarukan Basis Pengetahuan", type="csv")
+if uploaded_file is not None:
+    bytes_data = uploaded_file.read()
+    with open("/home/researcher-1/botpress/packages/katakita_addons/data/bank_dki/bank_dki.csv", "wb") as f:
+        f.write(bytes_data) 

@@ -9,7 +9,7 @@ from pandas.api.types import (
 )
 import pandas as pd
 import streamlit as st
-st.set_page_config(layout="wide", )
+st.set_page_config(page_title='Histori Percakapan', page_icon = "/home/researcher-1/botpress/packages/katakita_addons/src/bp_katakita/dashboard/assets/favicon.png", layout = 'wide', initial_sidebar_state = 'auto')
 
 from bp_katakita.utils.handler import chat_history as chat_history_handler
 
@@ -42,13 +42,13 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     modification_container = st.container()
 
     with modification_container:
-        to_filter_columns = st.multiselect("Filter dataframe on", df.columns)
+        to_filter_columns = st.multiselect("Filter Tabel:", df.columns) #Filter dataframe on
         for column in to_filter_columns:
             left, right = st.columns((1, 20))
             # Treat columns with < 10 unique values as categorical
             if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
                 user_cat_input = right.multiselect(
-                    f"Values for {column}",
+                    f"Nilai untuk {column}",
                     df[column].unique(),
                     default=list(df[column].unique()),
                 )
@@ -58,7 +58,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                 _max = float(df[column].max())
                 step = (_max - _min) / 100
                 user_num_input = right.slider(
-                    f"Values for {column}",
+                    f"Nilai untuk {column}",
                     min_value=_min,
                     max_value=_max,
                     value=(_min, _max),
@@ -67,7 +67,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                 df = df[df[column].between(*user_num_input)]
             elif is_datetime64_any_dtype(df[column]):
                 user_date_input = right.date_input(
-                    f"Values for {column}",
+                    f"Nilai untuk {column}",
                     value=(
                         df[column].min(),
                         df[column].max(),
@@ -79,7 +79,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     df = df.loc[df[column].between(start_date, end_date)]
             else:
                 user_text_input = right.text_input(
-                    f"Substring or regex in {column}",
+                    f"Sub-String {column}",
                 )
                 if user_text_input:
                     df = df[df[column].astype(str).str.contains(user_text_input)]
@@ -89,6 +89,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 # ----------------- #
 
 # Styling
+
 padding_top_html = """
     <style>
     .appview-container .main .block-container {
@@ -109,15 +110,20 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 # ----------------- #
 
 st.markdown(f'<div style="text-align: right">Last Refreshed: {(datetime.now() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")}</style>', unsafe_allow_html=True)
-st.markdown("### Knowledge Base")   
+st.markdown("### Histori Percakapan") #Chat History
 
-df = pd.read_csv("/home/researcher-1/botpress/packages/katakita_addons/data/bank_dki/bank_dki.csv")
-df.drop(columns=['question_id'], inplace=True)
-df.dropna(inplace=True)
+df = chat_history_handler.read_as_df(query={"bot_id": "testing_18-07-23"})
+df.drop(columns=['_id', 'message_id', 'bot_id'], inplace=True)
+df["datetime"] = pd.to_datetime(df["datetime"])
+df = df.rename(columns={'session_id': 'conversation_id'})
+column_rename = {
+    'conversation_id': 'ID Percakapan',
+    'datetime': 'Waktu',
+    'message': 'Pesan',
+    'author': 'Pengirim',
+    'topic': 'Topik',
+    'answered': 'Terjawab'
+}
+df.rename(columns=column_rename, inplace=True)
 
-st.dataframe(filter_dataframe(df), use_container_width=True, height=450)
-uploaded_file = st.file_uploader("Update Knowledge Base", type="csv")
-if uploaded_file is not None:
-    bytes_data = uploaded_file.read()
-    with open("/home/researcher-1/botpress/packages/katakita_addons/data/bank_dki/bank_dki.csv", "wb") as f:
-        f.write(bytes_data) 
+st.dataframe(filter_dataframe(df), use_container_width=True, height=600)
